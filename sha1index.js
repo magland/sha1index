@@ -153,8 +153,6 @@ function unlock_resource() {
 	},1);
 }
 
-var s_fcs_for_sha1={}; //such a bad hack. :(
-
 function compute_sha1_for_file(file,callback) {
 	lock_resource(function() {
 		console.log ('Computing sha1 for file: '+file.Key);
@@ -174,10 +172,7 @@ function compute_sha1_for_file(file,callback) {
 		download_stream.on('end', function() {
 	    	hash.end();
 	    	var sha1=hash.read();
-	    	if (sha1) {
-	    		s_fcs_for_sha1[sha1]='head1000-'+hash_fcs.read(); //such a bad hack. :(
-	    	}
-	    	callback(sha1);
+	    	callback({sha1:sha1,fcs:'head1000-'+hash_fcs.read()});
 	    	unlock_resource();
 		});
 		//download_stream.pipe(hash);
@@ -192,9 +187,9 @@ function compute_or_retrieve_sha1_for_file(file,callback) {
 		return;
 	}
 	else {
-		compute_sha1_for_file(file,function(sha1) {
-			if (sha1) {
-				sha1_index.sha1_by_etag[etag]=sha1;
+		compute_sha1_for_file(file,function(aa) {
+			if (aa) {
+				sha1_index.sha1_by_etag[etag]=aa;
 			}
 			callback(sha1);
 		});
@@ -205,13 +200,13 @@ function process_file(file,callback) {
 	var size0=file.Size;
 	etags_found[file.ETag]=1;
 	if (size0<1024*1024*1024*100) {
-		compute_or_retrieve_sha1_for_file(file,function(sha1) {
-			if (sha1) {
-				sha1_index.info_by_sha1[sha1]={};
-				sha1_index.info_by_sha1[sha1].path_hint=file.Key;
-				sha1_index.info_by_sha1[sha1].etag=file.ETag;
-				sha1_index.info_by_sha1[sha1].size=file.Size;
-				sha1_index.info_by_sha1[sha1].fcs=s_fcs_for_sha1[sha1]||''; //such a bad hack. :(
+		compute_or_retrieve_sha1_for_file(file,function(aa) {
+			if (aa) {
+				sha1_index.info_by_sha1[aa.sha1]={};
+				sha1_index.info_by_sha1[aa.sha1].path_hint=file.Key;
+				sha1_index.info_by_sha1[aa.sha1].etag=file.ETag;
+				sha1_index.info_by_sha1[aa.sha1].size=file.Size;
+				sha1_index.info_by_sha1[aa.sha1].fcs=aa.fcs;
 			}
 			var elapsed=(new Date())-timer;
 			if (elapsed>1000*20) {
