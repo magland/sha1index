@@ -14,7 +14,7 @@ read_sha1_index(function() {
 	sha1_index.sha1_by_etag=sha1_index.sha1_by_etag||{};
 	sha1_index.info_by_sha1=sha1_index.info_by_sha1||{};
 	
-	process_directory('misc',function() {
+	process_directory('/misc',function() {
 		clean_up(function() {
 			write_sha1_index(function() {
 				console.log ('Done.');
