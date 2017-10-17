@@ -153,6 +153,8 @@ function unlock_resource() {
 	},1);
 }
 
+var s_fcs_for_sha1={}; //such a bad hack. :(
+
 function compute_sha1_for_file(file,callback) {
 	lock_resource(function() {
 		console.log ('Computing sha1 for file: '+file.Key);
@@ -171,7 +173,11 @@ function compute_sha1_for_file(file,callback) {
 		});
 		download_stream.on('end', function() {
 	    	hash.end();
-	    	callback({sha1:hash.read(),fcs:'head1000-'+hash_fcs.read()});
+	    	var sha1=hash.read();
+	    	if (sha1) {
+	    		s_fcs_for_sha1[sha1]='head1000-'+hash_fcs.read(); //such a bad hack. :(
+	    	}
+	    	callback(sha1);
 	    	unlock_resource();
 		});
 		//download_stream.pipe(hash);
@@ -205,6 +211,7 @@ function process_file(file,callback) {
 				sha1_index.info_by_sha1[sha1].path_hint=file.Key;
 				sha1_index.info_by_sha1[sha1].etag=file.ETag;
 				sha1_index.info_by_sha1[sha1].size=file.Size;
+				sha1_index.info_by_sha1[sha1].fcs=s_fcs_for_sha1[sha1]||''; //such a bad hack. :(
 			}
 			var elapsed=(new Date())-timer;
 			if (elapsed>1000*20) {
