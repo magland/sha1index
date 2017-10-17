@@ -3,7 +3,7 @@
 var AWS = require('aws-sdk');
 
 var s3 = new AWS.S3({apiVersion: '2006-03-01'});
-var aws_bucket='mlscratch';
+var aws_bucket='mountainlab';
 var global_num_parallel=8;
 var etags_found={};
 
@@ -40,7 +40,7 @@ function write_sha1_index(callback) {
 		return;
 	}
 	console.log ('Writing sha1 index...');
-	write_json_s3object('sha1.index',sha1_index,function(tmp) {
+	write_json_s3object('.ml/sha1index.json',sha1_index,function(tmp) {
 		last_sha1_index=JSON.parse(JSON.stringify(sha1_index));
 		callback(tmp);
 	});
