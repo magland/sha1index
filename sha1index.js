@@ -191,7 +191,7 @@ function compute_or_retrieve_sha1_for_file(file,callback) {
 			if (aa) {
 				sha1_index.sha1_by_etag[etag]=aa;
 			}
-			callback(sha1);
+			callback(aa);
 		});
 	}
 }
