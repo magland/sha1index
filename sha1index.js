@@ -172,6 +172,7 @@ function compute_sha1_for_file(file,callback) {
 		download_stream.on('end', function() {
 	    	hash.end();
 	    	var sha1=hash.read();
+	    	hash_fcs.end();
 	    	callback({sha1:sha1,fcs:'head1000-'+hash_fcs.read()});
 	    	unlock_resource();
 		});
