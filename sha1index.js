@@ -2,6 +2,10 @@
 
 var AWS = require('aws-sdk');
 
+if (require('fs').existsSync(__dirname+'/aws_credentials.json')) {
+	AWS.config.loadFromPath(__dirname+'/aws_credentials.json');
+}
+
 var s3 = new AWS.S3({apiVersion: '2006-03-01'});
 var aws_bucket='mountainlab';
 var global_num_parallel=8;
@@ -155,13 +159,22 @@ function compute_sha1_for_file(file,callback) {
 		var download_stream=s3.getObject({Bucket:aws_bucket,Key:file.Key}).createReadStream();
 		var hash = require('crypto').createHash('sha1');
 		hash.setEncoding('hex');
+		var hash_fcs = require('crypto').createHash('sha1');
+		hash_fcs.setEncoding('hex');
 		var bytes_downloaded=0;
+		download_stream.on('data',function(d) {
+			if (bytes_downloaded<1000) {
+				hash_fcs.write(d.slice(0,Math.min(Math.min(1000-bytes_downloaded,1000),d.length)));
+			}
+			hash.write(d);
+			bytes_downloaded+=d.length;
+		});
 		download_stream.on('end', function() {
 	    	hash.end();
-	    	callback(hash.read());
+	    	callback({sha1:hash.read(),fcs:'head1000-'+hash_fcs.read()});
 	    	unlock_resource();
 		});
-		download_stream.pipe(hash);
+		//download_stream.pipe(hash);
 	});
 }
 
